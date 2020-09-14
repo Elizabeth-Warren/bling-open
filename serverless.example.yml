@@ -1,0 +1,71 @@
+# Please Note: This is not intended to work because it is an example.
+
+service: blinb
+
+frameworkVersion: ">=1.1.0 <2.0.0"
+
+custom:
+  name: bling
+  stage: ${opt:stage, env:STAGE, "dev"}
+  wsgi:
+    app: app.app
+  pythonRequirements:
+    dockerizePip: true
+    layer: true
+    useDownloadCache: false # We leave these off because sometimes the cache winds up breaking deploys
+    useStaticCache: false
+  # Use SSM for your secrets; do not store those in the clear here. We used environment 
+  # scoped SSM parameters for all of our secrets.
+  secrets:
+    helpscout_api_client_id: ${ssm:/${self:custom.stage}/helpscout_api_client_id~true}
+    helpscout_api_client_secret: ${ssm:/${self:custom.stage}/helpscout_api_client_secret~true}
+    helpscout_webhook_secret: ${ssm:/${self:custom.stage}/helpscout_webhook_secret~true}
+    twilio_account_sid: ${ssm:/${self:custom.stage}/twilio_account_sid~true}
+    twilio_auth_token: ${ssm:/${self:custom.stage}/twilio_auth_token~true}
+    mobile_commons_username: ${ssm:/${self:custom.stage}/mobile_commons_username~true}
+    mobile_commons_password: ${ssm:/${self:custom.stage}/mobile_commons_password~true}
+
+provider:
+  name: aws
+  runtime: python3.7
+  region: ${opt:region, env:REGION, "us-east-1"}
+  stage: ${self:custom.stage}
+  # All of the secrets that we looked up above are injected into the environment 
+  # of our lambdas. We found it wise to avoid looking up secrets within the lambda 
+  # on invocation. Should AWS spawn a ton of lambdas at the same time during 
+  # a traffic spike, the SSM lookups across these functions will exceed the SSM 
+  # lookup rate limit. Without those secrets, the software cannot function
+  environment:
+    HELPSCOUT_API_CLIENT_ID: ${self:custom.secrets.helpscout_api_client_id}
+    HELPSCOUT_API_CLIENT_SECRET: ${self:custom.secrets.helpscout_api_client_secret}
+    HELPSCOUT_WEBHOOK_SECRET: ${self:custom.secrets.helpscout_webhook_secret}
+    TWILIO_ACCOUNT_SID: ${self:custom.secrets.twilio_account_sid}
+    TWILIO_AUTH_TOKEN: ${self:custom.secrets.twilio_auth_token}
+    MOBILECOMMONS_USERNAME: ${self:custom.secrets.mobile_commons_username}
+    MOBILECOMMONS_PASSWORD: ${self:custom.secrets.mobile_commons_password}
+
+package:
+  excludeDevDependencies: true
+  individually: true
+  exclude:
+    - ".pytest_cache/**"
+    - "node_modules/**"
+    - ".vscode/**"
+
+functions:
+  server:
+    name: ${self:custom.stage}-${self:custom.name}-server
+    handler: wsgi_handler.handler
+    events:
+      - http: ANY /
+      - http: ANY {proxy+}
+      # The scheuled lambda here keeps a container warm
+      - schedule:
+          rate: rate(4 minutes)
+    timeout: 30
+    vpc: ${self:custom.vpcConfig}
+    layers:
+      - {Ref: PythonRequirementsLambdaLayer}
+
+plugins:
+  - serverless-python-requirements

@@ -1,0 +1,31 @@
+[[source]]
+name = "pypi"
+url = "https://pypi.org/simple"
+verify_ssl = true
+
+[dev-packages]
+pylint = "*"
+pytest = "*"
+black = "*"
+flake8 = "*"
+
+[packages]
+requests = "*"
+twilio = "*"
+phonenumbers = "*"
+xmltodict = "*"
+python-dateutil = "*"
+lxml = "*"
+flask = "*"
+werkzeug = "==0.16.1"
+flask-cors = "*"
+
+[requires]
+python_version = "3.8"
+
+[pipenv]
+allow_prereleases = true
+
+[scripts]
+test="python -m pytest -vv"
+server="env FLASKAPP=app.py FLASK_DEBUG=1 python -m flask run" 
