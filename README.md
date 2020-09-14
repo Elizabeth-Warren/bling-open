@@ -6,7 +6,7 @@ A single instance of Bling can handle multiple Help Scout Mailboxes, but each Ma
 
 This repository includes code that should be instructive to folks looking to use mobilecommons rather than Twilio as the SMS transport layer :) 
 
-Bling was built by @benweissmann. And infinite appreciation to @avrilpearl for her help getting it open sourced!
+Bling was built by [@benweissmann](https://github.com/benweissmann). And infinite appreciation to [@avrilpearl](https://github.com/avrilpearl) for her help getting it open sourced!
 
 ## Setup
 
