@@ -4,6 +4,10 @@ Bling is a hotline system built on top of Twilio and Help Scout. It accepts inco
 
 A single instance of Bling can handle multiple Help Scout Mailboxes, but each Mailbox must have its own Twilio number.
 
+This repository includes code that should be instructive to folks looking to use mobilecommons rather than Twilio as the SMS transport layer :) 
+
+Bling was built by @benweissmann. And infinite appreciation to @avrilpearl for her help getting it open sourced!
+
 ## Setup
 
 1. Install pipenv, then:
